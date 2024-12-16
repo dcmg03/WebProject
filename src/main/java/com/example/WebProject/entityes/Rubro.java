@@ -1,51 +1,11 @@
 package com.example.WebProject.entityes;
 
-
 import jakarta.persistence.*;
-import java.util.List;
+import java.math.BigDecimal;
 
 @Entity
+@Table(name = "rubros")
 public class Rubro {
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getNombre() {
-        return nombre;
-    }
-
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
-    }
-
-    public Double getPresupuestoInicial() {
-        return presupuestoInicial;
-    }
-
-    public void setPresupuestoInicial(Double presupuestoInicial) {
-        this.presupuestoInicial = presupuestoInicial;
-    }
-
-    public Double getPresupuestoDisponible() {
-        return presupuestoDisponible;
-    }
-
-    public void setPresupuestoDisponible(Double presupuestoDisponible) {
-        this.presupuestoDisponible = presupuestoDisponible;
-    }
-
-    public List<Asignacion> getAsignaciones() {
-        return asignaciones;
-    }
-
-    public void setAsignaciones(List<Asignacion> asignaciones) {
-        this.asignaciones = asignaciones;
-    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,13 +13,20 @@ public class Rubro {
 
     private String nombre;
 
-    private Double presupuestoInicial;
+    private BigDecimal presupuestoInicial;
 
-    private Double presupuestoDisponible;
-
-    @OneToMany(mappedBy = "rubro", cascade = CascadeType.ALL)
-    private List<Asignacion> asignaciones;
+    private BigDecimal presupuestoDisponible;
 
     // Getters y Setters
-}
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+
+    public BigDecimal getPresupuestoInicial() { return presupuestoInicial; }
+    public void setPresupuestoInicial(BigDecimal presupuestoInicial) { this.presupuestoInicial = presupuestoInicial; }
+
+    public BigDecimal getPresupuestoDisponible() { return presupuestoDisponible; }
+    public void setPresupuestoDisponible(BigDecimal presupuestoDisponible) { this.presupuestoDisponible = presupuestoDisponible; }
+}

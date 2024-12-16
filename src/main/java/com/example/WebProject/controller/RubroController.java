@@ -1,56 +1,62 @@
 package com.example.WebProject.controller;
 
-
 import com.example.WebProject.entityes.Rubro;
 import com.example.WebProject.service.RubroService;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/rubros")
 public class RubroController {
 
-    private final RubroService rubroService;
+    @Autowired
+    private RubroService rubroService;
 
-    public RubroController(RubroService rubroService) {
-        this.rubroService = rubroService;
-    }
-
-    // Endpoint para listar todos los rubros
     @GetMapping
-    public ResponseEntity<List<Rubro>> listarRubros() {
-        List<Rubro> rubros = rubroService.listarRubros();
-        return ResponseEntity.ok(rubros);
+    public List<Rubro> obtenerTodos() {
+        return rubroService.obtenerTodos();
     }
 
-    // Endpoint para obtener un rubro por ID
     @GetMapping("/{id}")
-    public ResponseEntity<Rubro> obtenerRubroPorId(@PathVariable Long id) {
-        Rubro rubro = rubroService.obtenerRubroPorId(id);
-        return ResponseEntity.ok(rubro);
+    public ResponseEntity<Rubro> obtenerPorId(@PathVariable Long id) {
+        return rubroService.obtenerPorId(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
-    // Endpoint para crear un nuevo rubro
     @PostMapping
-    public ResponseEntity<Rubro> crearRubro(@RequestBody Rubro rubro) {
-        Rubro nuevoRubro = rubroService.crearRubro(rubro);
-        return ResponseEntity.status(HttpStatus.CREATED).body(nuevoRubro);
+    public Rubro crear(@RequestBody Rubro rubro) {
+        return rubroService.guardar(rubro);
     }
 
-    // Endpoint para actualizar un rubro existente
     @PutMapping("/{id}")
-    public ResponseEntity<Rubro> actualizarRubro(@PathVariable Long id, @RequestBody Rubro rubroActualizado) {
-        Rubro rubro = rubroService.actualizarRubro(id, rubroActualizado);
-        return ResponseEntity.ok(rubro);
+    public ResponseEntity<Rubro> actualizar(@PathVariable Long id, @RequestBody Rubro rubro) {
+        return rubroService.obtenerPorId(id)
+                .map(existing -> {
+                    existing.setNombre(rubro.getNombre());
+                    existing.setPresupuestoInicial(rubro.getPresupuestoInicial());
+                    existing.setPresupuestoDisponible(rubro.getPresupuestoDisponible());
+                    return ResponseEntity.ok(rubroService.guardar(existing));
+                }).orElse(ResponseEntity.notFound().build());
     }
 
-    // Endpoint para eliminar un rubro
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarRubro(@PathVariable Long id) {
-        rubroService.eliminarRubro(id);
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        rubroService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
+    @GetMapping("/alertas")
+    public List<Rubro> obtenerRubrosConAlertas() {
+        return rubroService.obtenerRubrosConAlertas();
+    }
+    @GetMapping("/reportes")
+    public Map<String, BigDecimal> obtenerReporteGeneral() {
+        return rubroService.obtenerReporteGeneral();
+    }
+
 }

@@ -1,56 +1,47 @@
 package com.example.WebProject.service;
 
-
-
 import com.example.WebProject.entityes.Rubro;
 import com.example.WebProject.repository.RubroRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RubroService {
 
-    private final RubroRepository rubroRepository;
+    @Autowired
+    private RubroRepository rubroRepository;
 
-    public RubroService(RubroRepository rubroRepository) {
-        this.rubroRepository = rubroRepository;
-    }
-
-    public List<Rubro> listarRubros() {
+    public List<Rubro> obtenerTodos() {
         return rubroRepository.findAll();
     }
 
-    public Rubro guardarRubro(Rubro rubro) {
+    public Optional<Rubro> obtenerPorId(Long id) {
+        return rubroRepository.findById(id);
+    }
+
+    public Rubro guardar(Rubro rubro) {
         return rubroRepository.save(rubro);
     }
 
-    public Rubro crearRubro(Rubro rubro) {
-        if (rubro.getPresupuestoInicial() == null || rubro.getPresupuestoInicial() <= 0) {
-            throw new IllegalArgumentException("El presupuesto inicial debe ser mayor a 0");
-        }
-        rubro.setPresupuestoDisponible(rubro.getPresupuestoInicial());
-        return rubroRepository.save(rubro);
-    }
-
-
-    public Rubro obtenerRubroPorId(Long id) {
-        return rubroRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Rubro no encontrado con ID: " + id));
-    }
-
-    public Rubro actualizarRubro(Long id, Rubro rubroActualizado) {
-        Rubro rubroExistente = obtenerRubroPorId(id); // Llama al método anterior
-        rubroExistente.setNombre(rubroActualizado.getNombre());
-        rubroExistente.setPresupuestoInicial(rubroActualizado.getPresupuestoInicial());
-        rubroExistente.setPresupuestoDisponible(rubroActualizado.getPresupuestoDisponible());
-        return rubroRepository.save(rubroExistente);
-    }
-    public void eliminarRubro(Long id) {
-        if (!rubroRepository.existsById(id)) {
-            throw new RuntimeException("Rubro no encontrado con ID: " + id);
-        }
+    public void eliminar(Long id) {
         rubroRepository.deleteById(id);
+    }
+    public List<Rubro> obtenerRubrosConAlertas() {
+        return rubroRepository.findAll()
+                .stream()
+                .filter(r -> r.getPresupuestoDisponible().compareTo(BigDecimal.ZERO) <= 0)
+                .toList();
+    }
+    public Map<String, BigDecimal> obtenerReporteGeneral() {
+        return rubroRepository.findAll()
+                .stream()
+                .collect(Collectors.toMap(Rubro::getNombre, Rubro::getPresupuestoDisponible));
     }
 
 
