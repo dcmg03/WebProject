@@ -14,13 +14,13 @@ public class CorsConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList("*")); // Permitir cualquier origen, cambiar en producción
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(Arrays.asList("*")); // Permitir todos los headers
+        config.setAllowedOrigins(Arrays.asList("http://localhost:3000")); // Cambia según tus necesidades
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
+        config.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config); // Aplicar CORS a todos los endpoints
+        source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);
     }
 }

@@ -27,17 +27,17 @@ public class AuthService {
 
         // Codificar la contraseña antes de guardarla
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        return userRepository.save(user); // Retorna el usuario guardado
+        return userRepository.save(user);
     }
-
 
     public boolean validateCredentials(String username, String password) {
         Optional<User> userOptional = userRepository.findByUsername(username);
+
+        // Verificar si el usuario existe y comparar contraseñas
         if (userOptional.isPresent()) {
             User user = userOptional.get();
             return passwordEncoder.matches(password, user.getPassword());
         }
         return false;
     }
-
 }
