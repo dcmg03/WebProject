@@ -1,60 +1,44 @@
 package com.example.WebProject.config;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
+import com.example.WebProject.service.JwtService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
 
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.security.Key;
 
 @Component
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter implements Filter {
 
-    @Value("${jwt.secret}") // Clave secreta en application.properties
-    private String secretKey;
+    @Autowired
+    private JwtService jwtService;
+
+    private final String[] excludedPaths = {"/api/auth/register", "/api/auth/login"};
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-            throws ServletException, IOException {
-        String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+        HttpServletRequest httpRequest = (HttpServletRequest) request;
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Missing or invalid Authorization header.");
-            return;
+        String path = httpRequest.getRequestURI();
+
+        // Exclude specific paths from JWT validation
+        for (String excluded : excludedPaths) {
+            if (path.contains(excluded)) {
+                chain.doFilter(request, response);
+                return;
+            }
         }
 
-        String token = authHeader.substring(7); // Remueve el prefijo "Bearer "
-        try {
-            Key key = Keys.hmacShaKeyFor(secretKey.getBytes()); // Manejo seguro de claves
+        String token = httpRequest.getHeader("Authorization");
 
-            // Analiza y valida el token
-            Jws<Claims> claimsJws = Jwts.parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(token);
-
-            Claims claims = claimsJws.getBody();
-            request.setAttribute("userId", claims.getSubject()); // Extrae la información del token
-
-        } catch (JwtException e) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Invalid token.");
-            return;
+        if (token != null && jwtService.isTokenValid(token)) {
+            chain.doFilter(request, response);
+        } else {
+            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT token");
         }
-
-        // Continúa con el siguiente filtro en la cadena
-        filterChain.doFilter(request, response);
     }
 }
